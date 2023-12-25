@@ -13,13 +13,17 @@ spring:
     username: ${sky.datasource.username}
     password: ${sky.datasource.password}
 
-mybatis:
-  #mapper配置文件
-  mapper-locations: classpath:mapper/*.xml
+#mybatis:
+#  #mapper配置文件
+#  mapper-locations: classpath:mapper/*.xml
+#  type-aliases-package: com.sky.entity
+#  configuration:
+#    #开启驼峰命名
+#    map-underscore-to-camel-case: true
+mybatis-plus:
+  global-config:
+    banner: false
   type-aliases-package: com.sky.entity
-  configuration:
-    #开启驼峰命名
-    map-underscore-to-camel-case: true
 
 logging:
   level:
@@ -37,3 +41,4 @@ sky:
     admin-ttl: 7200000
     # 设置前端传递过来的令牌名称
     admin-token-name: token
+
