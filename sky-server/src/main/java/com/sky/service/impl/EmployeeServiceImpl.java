@@ -128,4 +128,39 @@ public class EmployeeServiceImpl extends ServiceImpl<EmployeeMapper, Employee> i
         updateById(employee);
         return Result.success();
     }
+
+    /**
+     * 根据Id查询员工
+     *
+     * @param id
+     * @return
+     */
+    @Override
+    public Result<EmployeeDTO> queryById(Long id) {
+        Employee employee = getById(id);
+        if (employee == null) {
+            return Result.error("查无此人");
+        }
+        EmployeeDTO employeeDTO = new EmployeeDTO();
+        BeanUtil.copyProperties(employee, employeeDTO);
+        return Result.success(employeeDTO);
+    }
+
+    /**
+     * 更新员工
+     *
+     * @param employeeDTO
+     * @return
+     */
+    @Override
+    public Result<EmployeeDTO> updateEmployee(EmployeeDTO employeeDTO) {
+        Employee employee = new Employee();
+        BeanUtil.copyProperties(employeeDTO, employee);
+        Long currentId = BaseContext.getCurrentId();
+        employee.setUpdateUser(currentId);
+        employee.setUpdateUser(currentId);
+        employee.setUpdateTime(LocalDateTime.now());
+        updateById(employee);
+        return Result.success();
+    }
 }

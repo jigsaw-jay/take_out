@@ -9,7 +9,7 @@ import java.io.Serializable;
 @Data
 @Schema(description = "新增员工时传递的数据模型")
 public class EmployeeDTO implements Serializable {
-    @Hidden
+
     private Long id;
 
     @Schema(description = "用户名")

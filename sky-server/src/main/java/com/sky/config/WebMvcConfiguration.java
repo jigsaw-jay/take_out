@@ -43,20 +43,6 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
     }
 
     /**
-     * 扩展SpringMVC 消息转化器
-     * @param converters
-     */
-    @Override
-    protected void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
-        //创建一个消息转换器对象
-        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        //需要为消息转换器设置一个对象转换器，对象转换器可以把JAVA对象序列化为json数据
-        converter.setObjectMapper(new JacksonObjectMapper());
-        //将消息转化器加入到容器中
-        converters.add(0,converter);
-    }
-
-    /**
      * 通过knife4j生成接口文档
      * @return
      */
@@ -94,5 +80,20 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
     protected void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/doc.html").addResourceLocations("classpath:/META-INF/resources/");
         registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
+    }
+
+    /**
+     * 扩展SpringMVC 消息转化器
+     *
+     * @param converters
+     */
+    @Override
+    protected void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+        //创建一个消息转换器对象
+        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+        //需要为消息转换器设置一个对象转换器，对象转换器可以把JAVA对象序列化为json数据
+        converter.setObjectMapper(new JacksonObjectMapper());
+        //将消息转化器加入到容器中
+        converters.add(1, converter);
     }
 }

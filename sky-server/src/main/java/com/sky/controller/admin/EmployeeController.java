@@ -113,8 +113,25 @@ public class EmployeeController {
      */
     @PostMapping("/status/{status}")
     @Operation(summary = "启用/禁用员工")
-    public Result setStatus(@PathVariable Integer status,@RequestParam(value = "id") Long id) {
+    public Result setStatus(@PathVariable Integer status, @RequestParam(value = "id") Long id) {
 
-        return employeeService.setStatus(status,id);
+        return employeeService.setStatus(status, id);
+    }
+
+    /**
+     * 根据Id查询员工
+     * @param id
+     * @return
+     */
+    @GetMapping("/{id}")
+    @Operation(summary = "根据Id查询员工DTO信息")
+    public Result<EmployeeDTO> queryById(@PathVariable Long id) {
+        return employeeService.queryById(id);
+    }
+
+    @PutMapping()
+    @Operation(summary = "更新员工信息")
+    public Result<EmployeeDTO> updateEmployee(@RequestBody EmployeeDTO employeeDTO){
+        return employeeService.updateEmployee(employeeDTO);
     }
 }
