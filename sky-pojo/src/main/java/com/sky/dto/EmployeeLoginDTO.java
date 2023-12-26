@@ -9,10 +9,10 @@ import java.io.Serializable;
 @Schema(name = "员工登录时传递的数据模型")
 public class EmployeeLoginDTO implements Serializable {
 
-    @Schema(name ="用户名")
+    @Schema(description ="用户名")
     private String username;
 
-    @Schema(name ="密码")
+    @Schema(description ="密码")
     private String password;
 
 }

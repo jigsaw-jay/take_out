@@ -6,13 +6,13 @@ spring:
     active: dev
   main:
     allow-circular-references: true
+    banner-mode: off
   datasource:
     driver-class-name: ${sky.datasource.driver-class-name}
     url: jdbc:mysql://${sky.datasource.host}:${sky.datasource.port}/${sky.datasource.database}?&useSSL=false
     #serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
     username: ${sky.datasource.username}
     password: ${sky.datasource.password}
-
 #mybatis:
 #  #mapper配置文件
 #  mapper-locations: classpath:mapper/*.xml

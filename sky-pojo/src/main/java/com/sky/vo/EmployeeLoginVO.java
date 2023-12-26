@@ -16,16 +16,16 @@ import java.io.Serializable;
 @Schema(name = "员工登录返回的数据格式")
 public class EmployeeLoginVO implements Serializable {
 
-    @Schema(name ="主键值")
+    @Schema(description ="主键值")
     private Long id;
 
-    @Schema(name ="用户名")
+    @Schema(description ="用户名")
     private String userName;
 
-    @Schema(name ="姓名")
+    @Schema(description ="姓名")
     private String name;
 
-    @Schema(name ="jwt令牌")
+    @Schema(description ="jwt令牌")
     private String token;
 
 }

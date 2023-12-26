@@ -2,23 +2,30 @@ package com.sky.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.sky.constant.MessageConstant;
 import com.sky.constant.StatusConstant;
 import com.sky.context.BaseContext;
 import com.sky.dto.EmployeeDTO;
 import com.sky.dto.EmployeeLoginDTO;
+import com.sky.dto.EmployeePageQueryDTO;
 import com.sky.entity.Employee;
 import com.sky.exception.AccountLockedException;
 import com.sky.exception.AccountNotFoundException;
 import com.sky.exception.PasswordErrorException;
 import com.sky.mapper.EmployeeMapper;
+import com.sky.result.PageResult;
+import com.sky.result.Result;
 import com.sky.service.EmployeeService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static com.sky.constant.PasswordConstant.DEFAULT_PASSWORD;
 
@@ -81,5 +88,44 @@ public class EmployeeServiceImpl extends ServiceImpl<EmployeeMapper, Employee> i
         employee.setCreateUser(currentId);
         employee.setUpdateUser(currentId);
         save(employee);
+    }
+
+    /**
+     * 员工分页查询
+     *
+     * @param employeePageQueryDTO
+     * @return
+     */
+    @Override
+    public PageResult pageQuery(EmployeePageQueryDTO employeePageQueryDTO) {
+        String name = employeePageQueryDTO.getName();
+        int page = employeePageQueryDTO.getPage();
+        int pageSize = employeePageQueryDTO.getPageSize();
+        Page<Employee> pageInfo = new Page<>(page, pageSize);
+        LambdaQueryWrapper<Employee> lqw = new LambdaQueryWrapper<>();
+        lqw.like(StringUtils.isNotEmpty(name), Employee::getName, name);
+        lqw.orderByDesc(Employee::getUpdateTime);
+        Page<Employee> employeePage = page(pageInfo, lqw);
+        List<Employee> records = employeePage.getRecords();
+        long total = employeePage.getTotal();
+        return new PageResult(total, records);
+    }
+
+    /**
+     * 启用/禁用员工
+     *
+     * @param status
+     * @param id
+     * @return
+     */
+    @Override
+    public Result setStatus(Integer status, Long id) {
+        Employee employee = getById(id);
+        if (employee == null) {
+            return Result.error("查无此人");
+        }
+        employee.setStatus(status);
+        updateById(employee);
+        return Result.success();
     }
 }
