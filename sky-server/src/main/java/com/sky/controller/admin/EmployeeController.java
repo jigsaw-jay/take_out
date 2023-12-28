@@ -129,6 +129,11 @@ public class EmployeeController {
         return employeeService.queryById(id);
     }
 
+    /**
+     * 根据Id更新员工
+     * @param employeeDTO
+     * @return
+     */
     @PutMapping()
     @Operation(summary = "更新员工信息")
     public Result<EmployeeDTO> updateEmployee(@RequestBody EmployeeDTO employeeDTO){
