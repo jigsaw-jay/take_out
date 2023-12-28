@@ -41,25 +41,6 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
     private SetmealService setmealService;
 
     /**
-     * 启用、禁用分类
-     *
-     * @param status
-     * @param id
-     * @return
-     */
-    public Result<String> startOrStop(Integer status, Long id) {
-        Category category = Category.builder()
-                .id(id)
-                .status(status)
-                .updateTime(LocalDateTime.now())
-                .updateUser(BaseContext.getCurrentId())
-                .build();
-        updateById(category);
-        return Result.success();
-    }
-
-
-    /**
      * 新增分类
      *
      * @param categoryDTO
@@ -134,6 +115,24 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
         //设置修改时间、修改人
         category.setUpdateTime(LocalDateTime.now());
         category.setUpdateUser(BaseContext.getCurrentId());
+        updateById(category);
+        return Result.success();
+    }
+
+    /**
+     * 启用、禁用分类
+     *
+     * @param status
+     * @param id
+     * @return
+     */
+    public Result<String> startOrStop(Integer status, Long id) {
+        Category category = Category.builder()
+                .id(id)
+                .status(status)
+                .updateTime(LocalDateTime.now())
+                .updateUser(BaseContext.getCurrentId())
+                .build();
         updateById(category);
         return Result.success();
     }

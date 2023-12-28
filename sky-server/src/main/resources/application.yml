@@ -23,6 +23,8 @@ spring:
 mybatis-plus:
   global-config:
     banner: false
+    db-config:
+      id-type: auto
   type-aliases-package: com.sky.entity
 
 logging:

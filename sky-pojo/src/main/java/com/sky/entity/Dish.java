@@ -22,7 +22,6 @@ public class Dish implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @TableId(type = IdType.AUTO)
     private Long id;
 
     //菜品名称
@@ -42,6 +41,7 @@ public class Dish implements Serializable {
 
     //0 停售 1 起售
     private Integer status;
+
 
     private LocalDateTime createTime;
 
