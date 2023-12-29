@@ -39,7 +39,7 @@ public class Category implements Serializable {
     private LocalDateTime createTime;
 
     //更新时间
-    @TableField(fill = FieldFill.UPDATE)
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
 
     //创建人
@@ -47,6 +47,6 @@ public class Category implements Serializable {
     private Long createUser;
 
     //修改人
-    @TableField(fill = FieldFill.UPDATE)
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     private Long updateUser;
 }
