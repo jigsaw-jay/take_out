@@ -3,11 +3,13 @@ package com.sky.handler;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import com.sky.context.BaseContext;
 import org.apache.ibatis.reflection.MetaObject;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
 @Component
+@Configuration
 public class MyMetaObjectHandler implements MetaObjectHandler {
     /**
      * 插入操作自动填充

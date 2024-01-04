@@ -33,7 +33,7 @@ public class CategoryController {
      * @return
      */
     @PostMapping
-    @Operation(description = "新增分类")
+    @Operation(summary = "新增分类")
     public Result<String> saveCategory(@RequestBody CategoryDTO categoryDTO) {
         return categoryService.saveCategory(categoryDTO);
     }
@@ -45,7 +45,7 @@ public class CategoryController {
      * @return
      */
     @GetMapping("/page")
-    @Operation(description = "分类分页查询")
+    @Operation(summary = "分类分页查询")
     public Result<PageResult> page(CategoryPageQueryDTO categoryPageQueryDTO) {
         return categoryService.pageQuery(categoryPageQueryDTO);
     }
@@ -57,7 +57,7 @@ public class CategoryController {
      * @return
      */
     @DeleteMapping
-    @Operation(description = "删除分类")
+    @Operation(summary = "删除分类")
     public Result<String> deleteCategory(Long id) {
         return categoryService.deleteCategory(id);
     }
@@ -69,7 +69,7 @@ public class CategoryController {
      * @return
      */
     @PutMapping
-    @Operation(description = "修改分类")
+    @Operation(summary = "修改分类")
     public Result<String> updateCategory(@RequestBody CategoryDTO categoryDTO) {
         return categoryService.updateCategory(categoryDTO);
     }
@@ -82,9 +82,19 @@ public class CategoryController {
      * @return
      */
     @PostMapping("/status/{status}")
-    @Operation(description = "启用禁用分类")
+    @Operation(summary = "启用禁用分类")
     public Result<String> startOrStop(@PathVariable("status") Integer status, Long id) {
         return categoryService.startOrStop(status, id);
     }
 
+    /**
+     * 根据类型查询分类集合
+     * @param type
+     * @return
+     */
+    @GetMapping("/list")
+    @Operation(summary = "根据类型查询分类集合")
+    public Result<List> categoryList(Integer type) {
+        return categoryService.categoryList(type);
+    }
 }

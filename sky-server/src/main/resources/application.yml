@@ -13,6 +13,17 @@ spring:
     #serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
     username: ${sky.datasource.username}
     password: ${sky.datasource.password}
+  data:
+    redis:
+      host: ${sky.redis.host}
+      port: ${sky.redis.port}
+      password: ${sky.redis.password}
+      lettuce:
+        pool:
+          max-active: 8 # 最大连接
+          max-idle: 8 # 最大空闲连接
+          min-idle: 0 # 最小空闲连接
+          max-wait: 100 # 连接等待时间
 #mybatis:
 #  #mapper配置文件
 #  mapper-locations: classpath:mapper/*.xml
@@ -20,12 +31,14 @@ spring:
 #  configuration:
 #    #开启驼峰命名
 #    map-underscore-to-camel-case: true
+
 mybatis-plus:
   global-config:
     banner: false
     db-config:
       id-type: auto
   type-aliases-package: com.sky.entity
+  mapper-locations: classpath:mapper/*.xml
 
 logging:
   level:
@@ -43,4 +56,15 @@ sky:
     admin-ttl: 7200000
     # 设置前端传递过来的令牌名称
     admin-token-name: token
+  alioss:
+    endpoint: ${sky.alioss.endpoint}
+    access-key-id: ${sky.alioss.accessKeyId}
+    access-key-secret: ${sky.alioss.accessKeySecrets}
+    bucket-name: ${sky.alioss.bucketName}
+
+#pagehelper:
+#  reasonable: true
+#  page-size-zero: true
+#  params: count=countSql
+#  helper-dialect: mysql
 

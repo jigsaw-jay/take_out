@@ -49,4 +49,11 @@ public interface CategoryService extends IService<Category> {
      * @param id
      */
     Result<String> startOrStop(Integer status, Long id);
+
+    /**
+     * 根据类型查询分类集合
+     * @param type
+     * @return
+     */
+    Result<List> categoryList(Integer type);
 }

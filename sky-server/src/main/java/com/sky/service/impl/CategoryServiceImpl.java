@@ -2,6 +2,7 @@ package com.sky.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -25,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 
 /**
@@ -126,13 +128,23 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
      * @return
      */
     public Result<String> startOrStop(Integer status, Long id) {
-        Category category = Category.builder()
-                .id(id)
-                .status(status)
-                .updateTime(LocalDateTime.now())
-                .updateUser(BaseContext.getCurrentId())
-                .build();
-        updateById(category);
+        LambdaUpdateWrapper<Category> luw = new LambdaUpdateWrapper<>();
+        luw.eq(Category::getId, id).set(Category::getStatus, status);
+        update(luw);
         return Result.success();
+    }
+
+    /**
+     * 根据类型查询分类集合
+     *
+     * @param type
+     * @return
+     */
+    @Override
+    public Result<List> categoryList(Integer type) {
+        LambdaQueryWrapper<Category> lqw = new LambdaQueryWrapper<>();
+        lqw.eq(Category::getType, type);
+        List<Category> list = list(lqw);
+        return Result.success(list);
     }
 }

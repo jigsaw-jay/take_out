@@ -26,7 +26,7 @@
         <fastjson>1.2.76</fastjson>
         <commons.lang>2.6</commons.lang>
         <druid>1.2.1</druid>
-        <pagehelper>1.3.0</pagehelper>
+        <pagehelper>1.4.6</pagehelper>
         <aliyun.sdk.oss>3.10.2</aliyun.sdk.oss>
         <knife4j>4.3.0</knife4j>
         <aspectj>1.9.4</aspectj>
@@ -34,6 +34,8 @@
         <jaxb-api>2.3.1</jaxb-api>
         <poi>3.16</poi>
         <jsqlparser>4.6</jsqlparser>
+        <redis>3.2.0</redis>
+        <redis-commons>2.12.0</redis-commons>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -153,10 +155,25 @@
                 <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
                 <version>${knife4j}</version>
             </dependency>
+
             <dependency>
                 <groupId>com.github.jsqlparser</groupId>
                 <artifactId>jsqlparser</artifactId>
                 <version>${jsqlparser}</version>
+            </dependency>
+
+            <!--Redis-->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-data-redis</artifactId>
+                <version>${redis}</version>
+            </dependency>
+
+            <!--Redis连接池-->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-pool2</artifactId>
+                <version>${redis-commons}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
