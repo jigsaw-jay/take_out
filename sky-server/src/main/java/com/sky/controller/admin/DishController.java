@@ -74,24 +74,37 @@ public class DishController {
 
     /**
      * 停售起售
+     *
      * @param status
      * @param id
      * @return
      */
     @PostMapping("/status/{status}")
     @Operation(summary = "停售起售")
-    public Result setStatus(@PathVariable Integer status,Long id) {
+    public Result setStatus(@PathVariable Integer status, Long id) {
         return dishService.setStatus(status, id);
     }
 
     /**
      * 修改菜品
+     *
      * @param dishDTO
      * @return
      */
     @PutMapping()
     @Operation(summary = "修改菜品信息")
-    public Result updateDish(@RequestBody DishDTO dishDTO){
+    public Result updateDish(@RequestBody DishDTO dishDTO) {
         return dishService.updateDish(dishDTO);
+    }
+
+    /**
+     * 根据分类id查询菜品集合
+     * @param categoryId
+     * @return
+     */
+    @GetMapping("/list")
+    @Operation(summary = "根据分类id查询菜品集合")
+    public Result<List> listDish(Integer categoryId) {
+        return dishService.listDish(categoryId);
     }
 }

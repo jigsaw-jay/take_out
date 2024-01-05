@@ -16,6 +16,7 @@ import com.sky.entity.Dish;
 import com.sky.entity.DishFlavor;
 import com.sky.entity.SetmealDish;
 import com.sky.exception.DeletionNotAllowedException;
+import com.sky.exception.SetmealEnableFailedException;
 import com.sky.mapper.DishMapper;
 import com.sky.mapper.SetmealDishMapper;
 import com.sky.result.PageResult;
@@ -23,7 +24,7 @@ import com.sky.result.Result;
 import com.sky.service.CategoryService;
 import com.sky.service.DishFlavorService;
 import com.sky.service.DishService;
-import com.sky.service.SetmealDIshService;
+import com.sky.service.SetmealDishService;
 import com.sky.vo.DishVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +43,7 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
     @Autowired
     private DishMapper dishMapper;
     @Autowired
-    private SetmealDIshService setmealDIshService;
+    private SetmealDishService setmealDishService;
 
     /**
      * 新增菜品
@@ -102,7 +103,7 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
         //判断当前菜品是否被套餐关联
         LambdaQueryWrapper<SetmealDish> lqw2 = new LambdaQueryWrapper<>();
         lqw2.in(SetmealDish::getDishId, ids);
-        List<SetmealDish> list = setmealDIshService.list(lqw2);
+        List<SetmealDish> list = setmealDishService.list(lqw2);
         if (list != null && list.size() > 0) {
             throw new DeletionNotAllowedException(MessageConstant.DISH_BE_RELATED_BY_SETMEAL);
         }
@@ -145,7 +146,7 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
         //判断当前菜品是否被套餐关联
         LambdaQueryWrapper<SetmealDish> lqw = new LambdaQueryWrapper<>();
         lqw.eq(SetmealDish::getDishId, id);
-        List<SetmealDish> setmealDishes = setmealDIshService.list(lqw);
+        List<SetmealDish> setmealDishes = setmealDishService.list(lqw);
         if (setmealDishes != null && setmealDishes.size() > 0) {
             throw new DeletionNotAllowedException(MessageConstant.DISH_BE_RELATED_BY_SETMEAL_2);
         }
@@ -176,5 +177,17 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
             dishFlavorService.saveBatch(flavors);
         }
         return Result.success();
+    }
+
+    /**
+     * 根据分类id查询菜品集合
+     * @param categoryId
+     * @return
+     */
+    @Override
+    public Result<List> listDish(Integer categoryId) {
+        LambdaQueryWrapper<Dish> lqw = new LambdaQueryWrapper<>();
+        List<Dish> dishList = list(lqw.eq(Dish::getCategoryId, categoryId));
+        return Result.success(dishList);
     }
 }

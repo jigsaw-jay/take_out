@@ -54,4 +54,12 @@ public interface DishService extends IService<Dish> {
      * @return
      */
     Result updateDish(DishDTO dishDTO);
+
+    /**
+     * 根据分类id查询菜品集合
+     * @param categoryId
+     * @return
+     */
+    Result<List> listDish(Integer categoryId);
+
 }
