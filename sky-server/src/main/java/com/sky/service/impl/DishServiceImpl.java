@@ -2,6 +2,9 @@ package com.sky.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 
+
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -11,26 +14,28 @@ import com.sky.constant.MessageConstant;
 import com.sky.constant.StatusConstant;
 import com.sky.dto.DishDTO;
 import com.sky.dto.DishPageQueryDTO;
-import com.sky.entity.Category;
 import com.sky.entity.Dish;
 import com.sky.entity.DishFlavor;
 import com.sky.entity.SetmealDish;
 import com.sky.exception.DeletionNotAllowedException;
-import com.sky.exception.SetmealEnableFailedException;
 import com.sky.mapper.DishMapper;
-import com.sky.mapper.SetmealDishMapper;
 import com.sky.result.PageResult;
 import com.sky.result.Result;
-import com.sky.service.CategoryService;
 import com.sky.service.DishFlavorService;
 import com.sky.service.DishService;
 import com.sky.service.SetmealDishService;
+import com.sky.utils.RedisUtils;
 import com.sky.vo.DishVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import static com.sky.constant.RedisConstants.*;
 
 
 @Service
@@ -39,11 +44,13 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
     @Autowired
     private DishFlavorService dishFlavorService;
     @Autowired
-    private CategoryService categoryService;
-    @Autowired
     private DishMapper dishMapper;
     @Autowired
     private SetmealDishService setmealDishService;
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+    @Autowired
+    private RedisUtils redisUtils;
 
     /**
      * 新增菜品
@@ -56,6 +63,9 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
         Dish dish = new Dish();
         BeanUtil.copyProperties(dishDTO, dish);
         save(dish);
+        //清理Redis缓存
+        String key = CACHE_DISH_KEY + dishDTO.getCategoryId();
+        redisUtils.cleanCache(key);
         Long dishId = dish.getId();
         List<DishFlavor> flavors = dishDTO.getFlavors();
         if (flavors != null && flavors.size() > 0) {
@@ -87,15 +97,9 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
      */
     @Override
     public Result<String> deleteDishWithFlavor(List<Long> ids) {
-        //判断当前菜品是否为起售中
-/*        for (Long id : ids) {
-            if (getById(id).getStatus() == StatusConstant.ENABLE) {
-                throw new DeletionNotAllowedException(MessageConstant.DISH_ON_SALE);
-            }
-        }*/
         LambdaQueryWrapper<Dish> lqw1 = new LambdaQueryWrapper<>();
-        List<Dish> list1 = list(lqw1.in(Dish::getId, ids));
-        for (Dish dish : list1) {
+        List<Dish> dishList = list(lqw1.in(Dish::getId, ids));
+        for (Dish dish : dishList) {
             if (dish.getStatus() == StatusConstant.ENABLE) {
                 throw new DeletionNotAllowedException(MessageConstant.DISH_ON_SALE);
             }
@@ -106,6 +110,11 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
         List<SetmealDish> list = setmealDishService.list(lqw2);
         if (list != null && list.size() > 0) {
             throw new DeletionNotAllowedException(MessageConstant.DISH_BE_RELATED_BY_SETMEAL);
+        }
+        //删除缓存
+        for (Dish dish : dishList) {
+            String key = CACHE_DISH_KEY + dish.getCategoryId();
+            redisUtils.cleanCache(key);
         }
         //删除菜品
         removeByIds(ids);
@@ -176,18 +185,39 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
             flavors.forEach(dishFlavor -> dishFlavor.setDishId(dishDTO.getId()));
             dishFlavorService.saveBatch(flavors);
         }
+        //清理Redis缓存
+        String key = CACHE_DISH_KEY + dishDTO.getCategoryId();
+        redisUtils.cleanCache(key);
         return Result.success();
     }
 
     /**
      * 根据分类id查询菜品集合
+     *
      * @param categoryId
      * @return
      */
     @Override
     public Result<List> listDish(Integer categoryId) {
-        LambdaQueryWrapper<Dish> lqw = new LambdaQueryWrapper<>();
+        String key = CACHE_DISH_KEY + categoryId;
+        String dishJson = stringRedisTemplate.opsForValue().get(key);
+        if (StrUtil.isNotBlank(dishJson)) {
+            List<DishVO> dishVoList = JSONUtil.toList(dishJson, DishVO.class);
+            return Result.success(dishVoList);
+        }
+        LambdaUpdateWrapper<Dish> lqw = new LambdaUpdateWrapper<>();
         List<Dish> dishList = list(lqw.eq(Dish::getCategoryId, categoryId));
-        return Result.success(dishList);
+        List<DishVO> dishVOList = new ArrayList<>();
+        for (Dish dish : dishList) {
+            DishVO dishVO = new DishVO();
+            BeanUtil.copyProperties(dish, dishVO);
+            LambdaQueryWrapper<DishFlavor> flavorlqw = new LambdaQueryWrapper<>();
+            Long dishId = dish.getId();
+            List<DishFlavor> flavors = dishFlavorService.list(flavorlqw.eq(DishFlavor::getDishId, dishId));
+            dishVO.setFlavors(flavors);
+            dishVOList.add(dishVO);
+        }
+        redisUtils.set(key, JSONUtil.toJsonStr(dishVOList), CACHE_DISH_TTL, TimeUnit.MINUTES);
+        return Result.success(dishVOList);
     }
 }

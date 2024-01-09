@@ -143,7 +143,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
     @Override
     public Result<List> categoryList(Integer type) {
         LambdaQueryWrapper<Category> lqw = new LambdaQueryWrapper<>();
-        lqw.eq(Category::getType, type);
+        lqw.eq(type != null, Category::getType, type);
         List<Category> list = list(lqw);
         return Result.success(list);
     }

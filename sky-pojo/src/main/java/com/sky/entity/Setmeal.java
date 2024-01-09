@@ -40,6 +40,7 @@ public class Setmeal implements Serializable {
 
     //图片
     private String image;
+
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 

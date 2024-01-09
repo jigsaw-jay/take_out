@@ -13,6 +13,7 @@ import com.sky.context.BaseContext;
 import com.sky.dto.EmployeeDTO;
 import com.sky.dto.EmployeeLoginDTO;
 import com.sky.dto.EmployeePageQueryDTO;
+import com.sky.dto.PasswordEditDTO;
 import com.sky.entity.Employee;
 import com.sky.enumeration.OperationType;
 import com.sky.exception.AccountLockedException;
@@ -162,6 +163,27 @@ public class EmployeeServiceImpl extends ServiceImpl<EmployeeMapper, Employee> i
         employee.setUpdateUser(currentId);
         employee.setUpdateUser(currentId);
         employee.setUpdateTime(LocalDateTime.now());
+        updateById(employee);
+        return Result.success();
+    }
+
+    /**
+     * 修改密码
+     * @param passwordEditDTO
+     * @return
+     */
+    @Override
+    public Result updatePassword(PasswordEditDTO passwordEditDTO) {
+        Long empId = BaseContext.getCurrentId();
+        log.info("id:{}", empId);
+        Employee employee = getById(empId);
+        String oldPassword = DigestUtils.md5DigestAsHex(passwordEditDTO.getOldPassword().getBytes());
+        String password = employee.getPassword();
+        String newPassword = DigestUtils.md5DigestAsHex(passwordEditDTO.getNewPassword().getBytes());
+        if (!oldPassword.equals(employee.getPassword())||password.equals(newPassword)) {
+            throw new PasswordErrorException(MessageConstant.PASSWORD_EDIT_FAILED);
+        }
+        employee.setPassword(newPassword);
         updateById(employee);
         return Result.success();
     }

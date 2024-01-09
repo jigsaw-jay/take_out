@@ -1,9 +1,11 @@
 package com.sky.controller.admin;
 
 import com.sky.constant.JwtClaimsConstant;
+import com.sky.context.BaseContext;
 import com.sky.dto.EmployeeDTO;
 import com.sky.dto.EmployeeLoginDTO;
 import com.sky.dto.EmployeePageQueryDTO;
+import com.sky.dto.PasswordEditDTO;
 import com.sky.entity.Employee;
 import com.sky.properties.JwtProperties;
 import com.sky.result.PageResult;
@@ -12,7 +14,6 @@ import com.sky.service.EmployeeService;
 import com.sky.utils.JwtUtil;
 import com.sky.vo.EmployeeLoginVO;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.annotations.ParameterObject;
@@ -75,6 +76,7 @@ public class EmployeeController {
     @PostMapping("/logout")
     @Operation(summary = "退出登录")
     public Result<String> logout() {
+        BaseContext.removeCurrentId();
         return Result.success();
     }
 
@@ -120,6 +122,7 @@ public class EmployeeController {
 
     /**
      * 根据Id查询员工
+     *
      * @param id
      * @return
      */
@@ -131,12 +134,24 @@ public class EmployeeController {
 
     /**
      * 根据Id更新员工
+     *
      * @param employeeDTO
      * @return
      */
     @PutMapping()
     @Operation(summary = "更新员工信息")
-    public Result<EmployeeDTO> updateEmployee(@RequestBody EmployeeDTO employeeDTO){
+    public Result<EmployeeDTO> updateEmployee(@RequestBody EmployeeDTO employeeDTO) {
         return employeeService.updateEmployee(employeeDTO);
+    }
+
+    /**
+     * 修改密码
+     * @param passwordEditDTO
+     * @return
+     */
+    @PutMapping("/editPassword")
+    @Operation(summary = "修改员工密码")
+    public Result updatePassword(@RequestBody PasswordEditDTO passwordEditDTO) {
+        return employeeService.updatePassword(passwordEditDTO);
     }
 }

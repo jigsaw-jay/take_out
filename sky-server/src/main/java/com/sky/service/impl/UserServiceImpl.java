@@ -37,8 +37,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private JwtProperties jwtProperties;
     @Autowired
     private WeChatProperties weChatProperties;
-    @Autowired
-    private StringRedisTemplate stringRedisTemplate;
 
     /**
      * 微信用户登录
