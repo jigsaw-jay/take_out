@@ -10,10 +10,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
 import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
-import com.sky.dto.OrdersDTO;
-import com.sky.dto.OrdersPageQueryDTO;
-import com.sky.dto.OrdersPaymentDTO;
-import com.sky.dto.OrdersSubmitDTO;
+import com.sky.dto.*;
 import com.sky.entity.*;
 import com.sky.exception.AddressBookBusinessException;
 import com.sky.exception.OrderBusinessException;
@@ -24,10 +21,7 @@ import com.sky.result.Result;
 import com.sky.service.*;
 import com.sky.utils.RedisUtils;
 import com.sky.utils.WeChatPayUtil;
-import com.sky.vo.DishVO;
-import com.sky.vo.OrderPaymentVO;
-import com.sky.vo.OrderSubmitVO;
-import com.sky.vo.OrderVO;
+import com.sky.vo.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -131,6 +125,130 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Orders> implement
         }).collect(Collectors.toList());
         shoppingCartService.saveBatch(shoppingCartList);
         redisUtils.set(CAHCE_SHOPINGCART_KEY + userId, JSONUtil.toJsonStr(shoppingCartList), CACHE_SHOPINGCART_TTL, TimeUnit.MINUTES);
+        return Result.success();
+    }
+
+    /**
+     * 订单分页搜索
+     *
+     * @param ordersPageQueryDTO
+     * @return
+     */
+    @Override
+    public Result<PageResult> conditionSearch(OrdersPageQueryDTO ordersPageQueryDTO) {
+        Page<Orders> orderPageInfo = new Page<>(ordersPageQueryDTO.getPage(), ordersPageQueryDTO.getPageSize());
+        Page<OrderVO> orderVOPage = new Page<>();
+        Integer status = ordersPageQueryDTO.getStatus();
+        String phone = ordersPageQueryDTO.getPhone();
+        String number = ordersPageQueryDTO.getNumber();
+        LocalDateTime beginTime = ordersPageQueryDTO.getBeginTime();
+        LocalDateTime endTime = ordersPageQueryDTO.getEndTime();
+        LambdaQueryWrapper<Orders> lqw = new LambdaQueryWrapper<>();
+        lqw.eq(status != null, Orders::getStatus, status)
+                .eq(phone != null, Orders::getPhone, phone)
+                .eq(number != null, Orders::getNumber, number)
+                .between(beginTime != null && endTime != null, Orders::getOrderTime, beginTime, endTime);
+        page(orderPageInfo, lqw);
+        BeanUtil.copyProperties(orderPageInfo, orderVOPage, "records");
+        List<Orders> records = orderPageInfo.getRecords();
+        List<OrderVO> list = records.stream().map((record) -> {
+            OrderVO orderVO = new OrderVO();
+            BeanUtil.copyProperties(record, orderVO);
+            //根据orderId查询相关菜品及其数量
+            LambdaQueryWrapper<OrderDetail> lqw2 = new LambdaQueryWrapper<>();
+            List<OrderDetail> orderDetailList = orderDetailService.list(lqw2.eq(OrderDetail::getOrderId, record.getId()));
+            List<String> orderDishs = orderDetailList.stream().map(orderDetail -> {
+                String orderDish = orderDetail.getName() + "*" + orderDetail.getNumber() + ";";
+                return orderDish;
+            }).collect(Collectors.toList());
+            orderVO.setOrderDishes(JSONUtil.toJsonStr(orderDishs));
+            return orderVO;
+        }).collect(Collectors.toList());
+        return Result.success(new PageResult(orderPageInfo.getTotal(), list));
+    }
+
+    /**
+     * 各个状态的订单数量统计
+     *
+     * @return
+     */
+    @Override
+    public Result<OrderStatisticsVO> statistics() {
+        //订单状态 2待接单 3已接单(待派送) 4派送中
+        LambdaQueryWrapper<Orders> lqw1 = new LambdaQueryWrapper<>();
+        lqw1.eq(Orders::getStatus, Orders.TO_BE_CONFIRMED);
+        long toBeConfirmed = count(lqw1);//待接单
+        LambdaQueryWrapper<Orders> lqw2 = new LambdaQueryWrapper<>();
+        lqw2.eq(Orders::getStatus, Orders.CONFIRMED);
+        long confirmed = count(lqw2);//已接单(待派送)
+        LambdaQueryWrapper<Orders> lqw3 = new LambdaQueryWrapper<>();
+        lqw3.eq(Orders::getStatus, Orders.DELIVERY_IN_PROGRESS);
+        long deliveryInProgress = count(lqw3);//派送中
+        OrderStatisticsVO orderStatisticsVO = OrderStatisticsVO.builder()
+                .toBeConfirmed((int) toBeConfirmed)
+                .confirmed((int) confirmed)
+                .deliveryInProgress((int) deliveryInProgress)
+                .build();
+        return Result.success(orderStatisticsVO);
+    }
+
+    /**
+     * 接单
+     *
+     * @param ordersConfirmDTO
+     * @return
+     */
+    @Override
+    public Result confirmOrder(OrdersConfirmDTO ordersConfirmDTO) {
+        LambdaUpdateWrapper<Orders> luw = new LambdaUpdateWrapper<>();
+        luw.eq(Orders::getId, ordersConfirmDTO.getId()).set(Orders::getStatus, Orders.CONFIRMED);
+        update(luw);
+        return Result.success();
+    }
+
+    /**
+     * 拒单
+     *
+     * @param ordersRejectionDTO
+     * @return
+     */
+    @Override
+    public Result rejectOrder(OrdersRejectionDTO ordersRejectionDTO) {
+        LambdaUpdateWrapper<Orders> luw = new LambdaUpdateWrapper<>();
+        luw.eq(Orders::getId, ordersRejectionDTO.getId())
+                .set(Orders::getStatus, Orders.CANCELLED)
+                .set(Orders::getCancelReason, ordersRejectionDTO.getRejectionReason())
+                .set(Orders::getCancelTime, LocalDateTime.now());
+        update(luw);
+        return Result.success();
+    }
+
+    /**
+     * 派送订单
+     *
+     * @param id
+     * @return
+     */
+    @Override
+    public Result deliverOrder(Long id) {
+        LambdaUpdateWrapper<Orders> luw = new LambdaUpdateWrapper<>();
+        luw.eq(Orders::getId, id).set(Orders::getStatus, Orders.DELIVERY_IN_PROGRESS);
+        update(luw);
+        return Result.success();
+    }
+
+    /**
+     * 完成订单
+     *
+     * @param id
+     * @return
+     */
+    @Override
+    public Result completeOrder(Long id) {
+        LambdaUpdateWrapper<Orders> luw = new LambdaUpdateWrapper<>();
+        luw.eq(Orders::getId, id).set(Orders::getStatus, Orders.COMPLETED)
+                .set(Orders::getDeliveryTime, LocalDateTime.now());
+        update(luw);
         return Result.success();
     }
 
@@ -249,7 +367,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Orders> implement
         luw.eq(Orders::getId, id)
                 .set(Orders::getStatus, Orders.CANCELLED)
                 .set(Orders::getCancelTime, LocalDateTime.now())
-                .set(Orders::getCancelReason,Orders.CANCEL_REASON);
+                .set(Orders::getCancelReason, Orders.CANCEL_REASON);
         update(luw);
         return Result.success();
     }

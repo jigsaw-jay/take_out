@@ -5,6 +5,7 @@ import com.sky.entity.Orders;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -24,17 +25,17 @@ public class OrderVO extends Orders implements Serializable {
     //下单用户id
     private Long userId;
     //地址id
-     private Long addressBookId;
+    private Long addressBookId;
     //下单时间
     private LocalDateTime orderTime;
     //结账时间
-     private LocalDateTime checkoutTime;
+    private LocalDateTime checkoutTime;
     //支付方式 1微信，2支付宝
     private Integer payMethod;
     //支付状态 0未支付 1已支付 2退款
     private Integer payStatus;
     //实收金额
-     private BigDecimal amount;
+    private BigDecimal amount;
     //备注
     private String remark;
     //用户名
@@ -42,21 +43,21 @@ public class OrderVO extends Orders implements Serializable {
     //手机号
     private String phone;
     //地址
-     private String address;
+    private String address;
     //收货人
-     private String consignee;
+    private String consignee;
     //订单取消原因
-     private String cancelReason;
+    private String cancelReason;
     //订单拒绝原因
     private String rejectionReason;
     //订单取消时间
-     private LocalDateTime cancelTime;
+    private LocalDateTime cancelTime;
     //预计送达时间
-     private LocalDateTime estimatedDeliveryTime;
+    private LocalDateTime estimatedDeliveryTime;
     //配送状态  1立即送出  0选择具体时间
-     private Integer deliveryStatus;
+    private Integer deliveryStatus;
     //送达时间
-     private LocalDateTime deliveryTime;
+    private LocalDateTime deliveryTime;
     //打包费
     private int packAmount;
     //餐具数量
@@ -64,6 +65,8 @@ public class OrderVO extends Orders implements Serializable {
     //餐具数量状态  1按餐量提供  0选择具体数量
     private Integer tablewareStatus;
 
+    //订单包含的菜品，以字符串形式展示
+    private String orderDishes;
 
     //订单详情
     private List<OrderDetail> orderDetailList;
