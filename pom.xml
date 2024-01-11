@@ -36,6 +36,7 @@
         <jsqlparser>4.6</jsqlparser>
         <redis>3.2.0</redis>
         <redis-commons>2.12.0</redis-commons>
+        <websocket>3.2.0</websocket>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -176,6 +177,12 @@
                 <version>${redis-commons}</version>
             </dependency>
 
+            <!--websocket-->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-websocket</artifactId>
+                <version>${websocket}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 </project>

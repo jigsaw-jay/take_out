@@ -87,4 +87,14 @@ public class OrderController {
     public Result cancelOrder(@PathVariable Long id) {
         return orderService.cancelOrder(id);
     }
+
+    /**
+     * 催单
+     * @param id
+     * @return
+     */
+    @GetMapping("/reminder/{id}")
+    public Result reminder(@PathVariable Long id){
+        return orderService.reminder(id);
+    }
 }

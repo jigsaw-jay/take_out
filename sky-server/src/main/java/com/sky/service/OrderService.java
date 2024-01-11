@@ -102,4 +102,11 @@ public interface OrderService extends IService<Orders> {
      * @return
      */
     Result completeOrder(Long id);
+
+    /**
+     * 催单
+     * @param id
+     * @return
+     */
+    Result reminder(Long id);
 }

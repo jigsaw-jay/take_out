@@ -253,6 +253,17 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Orders> implement
     }
 
     /**
+     * 催单
+     *
+     * @param id
+     * @return
+     */
+    @Override
+    public Result reminder(Long id) {
+        return Result.success();
+    }
+
+    /**
      * 订单支付
      *
      * @param ordersPaymentDTO

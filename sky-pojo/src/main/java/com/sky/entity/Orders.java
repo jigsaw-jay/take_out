@@ -29,6 +29,7 @@ public class Orders implements Serializable {
     public static final Integer CANCELLED = 6;
 
     public static final String CANCEL_REASON = "没有理由";
+    public static final String CANCEL_REASON_OVERTIME = "支付超时";
     /**
      * 支付状态 0未支付 1已支付 2退款
      */
