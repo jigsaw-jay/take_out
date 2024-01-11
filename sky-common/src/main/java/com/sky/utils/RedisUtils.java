@@ -10,6 +10,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -24,6 +26,25 @@ import static com.sky.constant.RedisConstants.LOCK_TTL;
 public class RedisUtils {
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
+
+    /**
+     * Redis实现全局唯一ID
+     */
+    private static final long BEGIN_TIMESTAMP = 1704067200L; //初始时间
+    private static final int COUNT_BITS = 32;
+    public long nextId(String keyPrefix) {
+        //1.生成时间戳
+        LocalDateTime now = LocalDateTime.now();
+        long nowSecond = now.toEpochSecond(ZoneOffset.UTC);
+        long timestamp = nowSecond - BEGIN_TIMESTAMP;
+
+        //2.生成序列号
+        String date = now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));//当天日期字符串
+        Long increment = stringRedisTemplate.opsForValue().increment("icr:" + keyPrefix + ":" + date);
+
+        //3.拼接并返回（时间戳+序列号）
+        return (timestamp << COUNT_BITS) | increment;
+    }
 
     /**
      * 序列化为JSON存入Redis+设置TTL
