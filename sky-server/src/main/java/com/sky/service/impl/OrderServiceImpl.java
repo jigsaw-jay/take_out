@@ -22,6 +22,7 @@ import com.sky.service.*;
 import com.sky.utils.RedisUtils;
 import com.sky.utils.WeChatPayUtil;
 import com.sky.vo.*;
+import com.sky.websocket.WebSocketServer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,7 +31,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -52,6 +55,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Orders> implement
     private UserService userService;
     @Autowired
     private WeChatPayUtil weChatPayUtil;
+    @Autowired
+    private WebSocketServer webSocketServer;
 
     /**
      * 提交订单
@@ -260,6 +265,41 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Orders> implement
      */
     @Override
     public Result reminder(Long id) {
+        //根据订单id查询订单
+        Orders order = getById(id);
+        //判断订单是否存在并且状态为3或4
+        if (order == null) {
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+        Map map = new HashMap();
+        map.put("type", 2);//1.表示来单提醒  2.表示客户催单
+        map.put("orderId", id);
+        map.put("content", "订单号：" + order.getNumber());
+        //通过websocket向客户端图一下推送消息
+        webSocketServer.sendToAllClient(JSONUtil.toJsonStr(map));
+        return Result.success();
+    }
+
+    /**
+     * 商家取消订单
+     *
+     * @param ordersCancelDTO
+     * @return
+     */
+    @Override
+    public Result cancelOrderByAdmin(OrdersCancelDTO ordersCancelDTO) {
+        Long id = ordersCancelDTO.getId();
+        Orders order = getById(id);
+        if (order.getStatus()==Orders.COMPLETED){
+            throw new OrderBusinessException(MessageConstant.ORDER_COMPLETED);
+        }
+        LambdaUpdateWrapper<Orders> luw = new LambdaUpdateWrapper();
+        luw.eq(Orders::getId, ordersCancelDTO.getId())
+                .set(Orders::getStatus, Orders.CANCELLED)
+                .set(Orders::getCancelTime, LocalDateTime.now())
+                .set(Orders::getPayStatus, Orders.REFUND)
+                .set(Orders::getRejectionReason, ordersCancelDTO.getCancelReason());
+        update(luw);
         return Result.success();
     }
 
@@ -320,6 +360,14 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Orders> implement
                 .checkoutTime(LocalDateTime.now())
                 .build();
         updateById(orders);
+
+        //通过websocket向客户端浏览器推送消息(JSON(type orderId content))
+        HashMap map = new HashMap();
+        map.put("type", 1); //1.表示来单提醒  2.表示客户催单
+        map.put("orderId", ordersDB.getId());
+        map.put("content", "订单号:" + outTradeNo);
+        String jsonStr = JSONUtil.toJsonStr(map);
+        webSocketServer.sendToAllClient(jsonStr);
     }
 
     /**
@@ -377,6 +425,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Orders> implement
         LambdaUpdateWrapper<Orders> luw = new LambdaUpdateWrapper<>();
         luw.eq(Orders::getId, id)
                 .set(Orders::getStatus, Orders.CANCELLED)
+                .set(Orders::getPayStatus, Orders.REFUND)
                 .set(Orders::getCancelTime, LocalDateTime.now())
                 .set(Orders::getCancelReason, Orders.CANCEL_REASON);
         update(luw);

@@ -109,4 +109,11 @@ public interface OrderService extends IService<Orders> {
      * @return
      */
     Result reminder(Long id);
+
+    /**
+     * 商家取消订单
+     * @param ordersCancelDTO
+     * @return
+     */
+    Result cancelOrderByAdmin(OrdersCancelDTO ordersCancelDTO);
 }

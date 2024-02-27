@@ -92,4 +92,13 @@ public class OrderController {
         return orderService.completeOrder(id);
     }
 
+    /**
+     * 商家取消订单
+     * @param ordersCancelDTO
+     * @return
+     */
+    @PutMapping("cancel")
+    public Result cancelOrderByAdmin(@RequestBody OrdersCancelDTO ordersCancelDTO){
+        return orderService.cancelOrderByAdmin(ordersCancelDTO);
+    }
 }
